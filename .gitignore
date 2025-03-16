@@ -34,3 +34,4 @@ build/
 
 # Ignore application properties, since we have sensitive data such as password to mysql
 src/main/resources/application.properties
+src/main/resources/application-secret.properties
