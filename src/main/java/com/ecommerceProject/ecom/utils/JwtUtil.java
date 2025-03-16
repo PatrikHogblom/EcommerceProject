@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -16,9 +17,20 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
-    // key generation on terminal:
-    @Value("${jwt.secret}")
-    private String SECRET_KEY;
+
+    @Value("${jwt.secret:defaultBase64EncodedSecretKey}") // Default to avoid null issues
+    private String secretKeyString;
+
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        if (secretKeyString == null || secretKeyString.equals("defaultBase64EncodedSecretKey")) {
+            throw new IllegalStateException("JWT secret key is not set! Check application.properties or environment variables.");
+        }
+        byte[] keyBytes = Decoders.BASE64.decode(secretKeyString);
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String generateToken(String userName) {
         Map<String, Object> claims = new HashMap<>();
@@ -31,13 +43,8 @@ public class JwtUtil {
                 .subject(userName)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 30))
-                .signWith(getSignKey())
+                .signWith(secretKey)
                 .compact();
-    }
-
-    private SecretKey getSignKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
-        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String extractUserName(String token) {
@@ -50,7 +57,7 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().verifyWith(getSignKey()).build().parseSignedClaims(token).getPayload();
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
     }
 
     private Boolean isTokenExpired(String token) {
