@@ -12,9 +12,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class WebSecurityConfiguration {
+public class WebSecurityConfiguration implements WebMvcConfigurer {
 
     private final JwtRequestFilter authFilter;  // Declare the JwtRequestFilter
 
@@ -28,13 +30,13 @@ public class WebSecurityConfiguration {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/authenticate", "/sign-up", "/order/**").permitAll()
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/authenticate", "/sign-up", "/order/**").permitAll()  // Allow these paths
+                        .requestMatchers("/api/**").authenticated()  // Secure these paths
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)  // Add JWT filter
                 .build();
     }
 
@@ -46,5 +48,16 @@ public class WebSecurityConfiguration {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    // Manually configure CORS
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("http://your-frontend-url.com")  // Replace with your frontend URL
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("Authorization", "Content-Type")
+                .allowCredentials(true)
+                .maxAge(3600);
     }
 }
