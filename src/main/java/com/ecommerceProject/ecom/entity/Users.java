@@ -1,5 +1,6 @@
 package com.ecommerceProject.ecom.entity;
 
+import com.ecommerceProject.ecom.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,12 +22,12 @@ public class Users implements UserDetails {
     private String email;
     private String name;
     private String city;
-    private String role;
+    private UserRole role;
     private String password;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role));
+        return List.of(new SimpleGrantedAuthority(role.toString()));
     }
 
     @Override
