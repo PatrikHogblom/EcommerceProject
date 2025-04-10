@@ -5,10 +5,14 @@ import com.ecommerceProject.ecom.dto.ReqRes;
 import com.ecommerceProject.ecom.entity.Users;
 import com.ecommerceProject.ecom.services.UsersManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class UserManagementController {
@@ -16,8 +20,13 @@ public class UserManagementController {
     private UsersManagementService usersManagementService;
 
     @PostMapping("/auth/register")
-    public ResponseEntity<ReqRes> register(@RequestBody ReqRes reg){
-        return ResponseEntity.ok(usersManagementService.register(reg));
+    public ResponseEntity<?> register(@RequestBody ReqRes reg){
+        if (usersManagementService.hasUserWithEmail(reg.getEmail())){
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "User already exists");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_ACCEPTABLE);
+        }
+        return new ResponseEntity<>(usersManagementService.register(reg), HttpStatus.OK);
     }
 
     @PostMapping("/auth/login")

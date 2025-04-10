@@ -51,6 +51,12 @@ public class UsersManagementService {
         return resp;
     }
 
+    public Boolean hasUserWithEmail(String email){
+        return usersRepository.findByEmail(email).isPresent();
+    }
+
+    //todo: can have a createadminaccount void function here later
+
     public ReqRes login(ReqRes loginRequest){
         ReqRes response = new ReqRes();
         try {
@@ -60,12 +66,14 @@ public class UsersManagementService {
             var refreshToken = jwtUtils.generateRefreshToken(new HashMap<>(), user);
             response.setStatusCode(200);
             response.setToken(jwt);
+            response.setRole(user.getRole());
             response.setRefreshToken(refreshToken);
-            response.setExpirationTime("1Hrs");
+            response.setExpirationTime("1Hrs");//see jwt utils for the expirationtime
             response.setMessage("Sucessfully Logged In ");
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             response.setStatusCode(500);
-            response.setMessage(e.getMessage());
+            response.setMessage("Incorrect username or password");
         }
         return response;
     }

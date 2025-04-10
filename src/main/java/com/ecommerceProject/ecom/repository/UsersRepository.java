@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface UsersRepository extends JpaRepository<Users, Integer> {
     Optional<Users> findByEmail(String email);
+    //todo: findbyrole -> to find existing admin, not prio
 }

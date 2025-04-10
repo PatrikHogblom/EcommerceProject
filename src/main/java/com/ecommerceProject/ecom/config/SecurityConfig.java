@@ -1,5 +1,6 @@
 package com.ecommerceProject.ecom.config;
 
+import com.ecommerceProject.ecom.enums.UserRole;
 import com.ecommerceProject.ecom.filters.JwtAuthFilter;
 import com.ecommerceProject.ecom.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +35,9 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(request -> request.requestMatchers("/auth/**", "/public/**").permitAll()
-                        .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/user/**").hasAnyAuthority("USER")
-                        .requestMatchers("/adminuser/**").hasAnyAuthority("ADMIN","USER")
+                        .requestMatchers("/admin/**").hasAnyAuthority(UserRole.ADMIN.toString())
+                        .requestMatchers("/user/**").hasAnyAuthority(UserRole.USER.toString())
+                        .requestMatchers("/adminuser/**").hasAnyAuthority(UserRole.ADMIN.toString(),UserRole.USER.toString())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
